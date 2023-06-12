@@ -24,5 +24,13 @@ and add below points <br/>
 **node_modules<br/>
 .env**
 
-**install react-bootstrap and icons** <br/>
+install react-bootstrap and icons <br/>
 **npm i react-bootstrap bootstrap react-icons**
+
+bootstrap file add in index.js file <br/>
+**import 'bootstrap/dist/css/bootstrap.min.css'**
+
+create **components** folder under **src** <br/>
+create **Header.js** file under **components** <br/>
+create **Footer.js** file under **components**
+
