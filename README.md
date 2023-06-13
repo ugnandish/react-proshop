@@ -168,7 +168,7 @@ import HomeScreen from './screens/HomeScreen';
 ```
 
 create **Product.js** file under components <br/>
-react-router not yet added so using a tag
+react-router-dom not yet added so using a tag
 ```
 import React from 'react';
 import {Card} from 'react-bootstrap';
@@ -210,4 +210,71 @@ import Product from '../components/Product';
     )) }
   </Row>
 </>
+```
+
+## Implement React Router
+install **react-router-dom** <br/>
+**npm i react-router-dom**
+install **react-router-bootstrap** <br/>
+**npm i react-router-bootstrap**
+
+**index.js** <br />
+```
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider} from 'react-router-dom';
+import App from './App';
+import HomeScreen from './screens/HomeScreen';
+import reportWebVitals from './reportWebVitals';
+
+const router = createBrowserRouter (
+  createRoutesFromElements (
+    <Route path='/' element={<App/>}>
+      <Route index={true} path='/' element={<HomeScreen/>} />
+    </Route>
+  )
+)
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>
+);
+
+reportWebVitals();
+```
+
+HomeScreen added in index.js file so removed from App.js <br/>
+**App.js**
+```
+import {Outlet} from 'react-router-dom'
+....
+<Container>
+  <Outlet />
+</Container>
+....
+```
+ 
+and **replace "a" to "Link"** with react-router-dom <br/>
+**product.js**
+```
+import { Link } from 'react-router-dom';
+....
+<Link to={`/product/${product._id}`}>
+  <Card.Img src={product.image} variant='top' />
+</Link>
+....
+```
+
+add **LinkContainer instead of href** 
+**Header.js** <br/>
+```
+import {LinkContainer} from 'react-router-bootstrap';
+....
+<LinkContainer to='/'>
+  <Navbar.Brand>ProShop</Navbar.Brand>
+</LinkContainer>
+....
 ```
