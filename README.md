@@ -268,7 +268,7 @@ import { Link } from 'react-router-dom';
 ....
 ```
 
-add **LinkContainer instead of href** 
+add **LinkContainer instead of href**  <br/>
 **Header.js** <br/>
 ```
 import {LinkContainer} from 'react-router-bootstrap';
