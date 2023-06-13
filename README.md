@@ -107,7 +107,7 @@ const App = () => {
 export default App;
 ```
 
-## Lists Products
+## List Products
 create **images** folder under public <br/>
 and create **products.js** file under src <br/>
 Example: **products.js** <br/>
@@ -134,4 +134,80 @@ export default products;
 
 create **screens** folder under src <br/>
 create **HomeScreen.js** file under screens
- 
+```
+import React from 'react';
+import products from '../products';
+import {Row, Col} from 'react-bootstrap';
+
+const HomeScreen = () => {
+  return (
+    <>
+      <h1>Latest Products</h1>
+      <Row>
+        {products.map((product) => (
+          <Col sm={12} md={6} lg={4} xl={3}>
+            <h3>{product.name}</h3>
+          </Col>
+        )) }
+      </Row>
+    </>
+  )
+}
+
+export default HomeScreen
+```
+
+call HomeScreen.js in App.js
+```
+import HomeScreen from './screens/HomeScreen';
+....
+<Container>
+  <HomeScreen />
+</Container>
+....
+```
+
+create **Product.js** file under components <br/>
+react-router not yet added so using a tag
+```
+import React from 'react';
+import {Card} from 'react-bootstrap';
+
+const Product = ({product}) => {
+  return (
+    <Card className='my-3 p-3 rounded'>
+      <a href={`/product/${product._id}`}>
+        <Card.Img src={product.image} variant='top' />
+      </a>
+
+      <Card.Body>
+        <a href={`/product/${product._id}`}>
+          <Card.Title as='div'>
+            <strong>{product.name}</strong>
+          </Card.Title>
+        </a>
+
+        <Card.Text as='h3'>
+          ${product.price}
+        </Card.Text>
+      </Card.Body>
+    </Card>
+  )
+}
+export default Product
+```
+
+and update the HomeScreen.js file
+```
+import Product from '../components/Product';
+<>
+  <h1>Latest Products</h1>
+  <Row>
+    {products.map((product) => (
+      <Col key={product._id} sm={12} md={6} lg={4} xl={3}>
+        <Product product={product} />
+      </Col>
+    )) }
+  </Row>
+</>
+```
