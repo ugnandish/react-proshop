@@ -465,3 +465,15 @@ app.get('/api/products/:id', (req, res) => {
 });
 app.listen(port, () => console.log(`server running on port ${port}`));
 ```
+
+### Nodemon & Concurrently
+install nodemon - **"npm i -D nodemon concurrently"**
+in package.json update the client, server and dev
+```
+"scripts": {
+    "start": "node backend/server.js",
+    "server": "nodemon backend/server.js",
+    "client": "npm start --prefix frontend",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  }
+```
