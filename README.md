@@ -467,7 +467,7 @@ app.listen(port, () => console.log(`server running on port ${port}`));
 ```
 
 ### Nodemon & Concurrently
-install nodemon - **"npm i -D nodemon concurrently"**
+install nodemon - **"npm i -D nodemon concurrently"** <br/>
 in package.json update the client, server and dev
 ```
 "scripts": {
