@@ -487,6 +487,7 @@ NODE_ENV=development
 PORT=8000
 ```
 
+**server.js**
 ```
 .....
 import dotenv from "dotenv";
