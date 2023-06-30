@@ -477,3 +477,21 @@ in package.json update the client, server and dev
     "dev": "concurrently \"npm run server\" \"npm run client\""
   }
 ```
+### Environment Variables
+**install dotenv** under root folder <br/>
+**npm i -D dotenv** <br/>
+create **.env** file under root folder <br/>
+**.env** <br/>
+```
+NODE_ENV=development
+PORT=8000
+```
+
+```
+.....
+import dotenv from "dotenv";
+dotenv.config();
+import products from "./data/products.js";
+const port = process.env.PORT || 5000;
+....
+```
