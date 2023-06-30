@@ -403,3 +403,43 @@ import ProductScreen from './screens/ProductScreen';
   <Route  path='/product/:id' element={<ProductScreen />} />
 </Route>
 ```
+
+# Section 3: Serving and Fetching Data
+create new folder **"backend"** under root folder<br/>
+create new file **"server.js"** under backend folder
+
+**install express** <br/>
+**"npm i express"** under root folder
+
+npm init - from root folder <br/>
+new package.json file created <br/>
+**package.json**
+```
+{
+  "name": "proshop-v2",
+  "version": "2.0.0",
+  "description": "eCommerce application built with the MERN stack",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node backend/server.js"
+  },
+  "author": "nandish",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
+```
+
+**server.js**
+```
+import express  from "express";
+const port = 5000;
+const app = express();
+app.get('/', (req, res) => {
+    res.send('API is running...')
+});
+app.listen(port, () => console.log(`server running on port ${port}`));
+```
+
