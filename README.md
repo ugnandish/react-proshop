@@ -484,7 +484,7 @@ create **.env** file under root folder <br/>
 **.env** <br/>
 ```
 NODE_ENV=development
-PORT=8000
+PORT=5000
 ```
 
 **server.js**
@@ -496,3 +496,138 @@ import products from "./data/products.js";
 const port = process.env.PORT || 5000;
 ....
 ```
+
+### Fetch Products
+Fetching data using **axios** <br/>
+install **axios under frontend** folder <br/>
+frontend -> **npm i axios**
+
+frontend > package.json <br/>
+add "proxy": "http://localhost:5000" (only dev environment, not used in production) 
+```
+....
+"private": true,
+  "proxy": "http://localhost:5000",
+  "dependencies": {
+....
+```
+
+**HomeScreen.js** - \frontend\src\screens\HomeScreen.js <br/> 
+fetch data from the server(backend) with the help of axios 
+```
+import React from 'react';
+import {Row, Col} from 'react-bootstrap';
+import { useEffect, useState } from 'react';
+import Product from '../components/Product';
+import axios from 'axios';
+
+const HomeScreen = () => {
+  const [products, setProducts] = useState([]);
+
+  useEffect(()=> {
+    const fetchProducts = async () => {
+      const {data} = await axios.get('/api/products');
+      setProducts(data);
+    }
+    fetchProducts();
+  }, []);
+
+  return (
+    <>
+      <h1>Latest Products</h1>
+      <Row>
+        {products.map((product) => (
+          <Col key={product._id} sm={12} md={6} lg={4} xl={3}>
+            <Product product={product} />
+          </Col>
+        )) }
+      </Row>
+    </>
+  )
+}
+
+export default HomeScreen;
+```
+
+**ProductScreen.js** - \frontend\src\screens\ProductScreen.js <br/>
+fetch product details from the server(backend) with the help of axios
+```
+import React from 'react'
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom';
+import {Row, Col, Image, ListGroup, Card, Button} from 'react-bootstrap';
+import Rating from '../components/Rating';
+import axios from 'axios';
+
+const ProductScreen = () => {
+  const [product, setProduct] = useState(0);
+
+  const {id:productId} = useParams();
+  
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const {data} = await axios.get(`/api/products/${productId}`);
+      setProduct(data);
+    }
+    fetchProduct();
+  }, [productId]);
+
+  return (
+    <>
+      <Link className='btn btn-light my-3' to='/'>
+        Go Back
+      </Link>
+      <Row>
+        <Col md={5}>
+          <Image src={product.image} alt={product.name} fluid />
+        </Col>
+        <Col md={4}>
+          <ListGroup variant='flush'>
+            <ListGroup.Item>
+              <h3>{product.name}</h3>
+            </ListGroup.Item>
+            <ListGroup.Item>
+              <Rating value={product.rating} text={`${product.numReviews} reviews`} />
+            </ListGroup.Item>
+            <ListGroup.Item>Price: ${product.price}</ListGroup.Item>
+            <ListGroup.Item>Description: ${product.description}</ListGroup.Item>
+          </ListGroup>
+        </Col>
+        <Col md={3}>
+          <Card>
+            <ListGroup variant='flush'>
+              <ListGroup.Item>
+                <Row>
+                  <Col>Price:</Col>
+                  <Col>
+                    <strong>${product.price}</strong>
+                  </Col>
+                </Row>
+              </ListGroup.Item>
+              <ListGroup.Item>
+                <Row>
+                  <Col>Status:</Col>
+                  <Col>
+                    <strong>${product.countInStock > 0 ? 'In Stock' : 'Out of Stock'}</strong>
+                  </Col>
+                </Row>
+              </ListGroup.Item>
+              <ListGroup.Item>
+                <Button className='btn-block' type='button' disabled={product.countInStock === 0}>
+                  Add to Cart
+                </Button>
+              </ListGroup.Item>
+            </ListGroup>
+          </Card>
+        </Col>
+      </Row>
+    </>
+  )
+}
+
+export default ProductScreen
+```
+
+everything is working fine, so delete the products.js (JSON data) file from frontend
+
