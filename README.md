@@ -631,3 +631,14 @@ export default ProductScreen
 
 everything is working fine, so delete the products.js (JSON data) file from frontend
 
+# Starting MongoDB & Mongoose
+
+**login to mongodb.com** <br/>
+create new project "**UGshop**" <br/>
+**build database** (select free with AWS) <br/>
+update the username and password <br/>
+automatically set the IP address and all - click on button **finish and close** 
+
+click on connect <br/>
+Connecting with MongoDB Driver <br/>
+**mongodb+srv://nandishug:<password>@cluster0.wqdxcv4.mongodb.net/?retryWrites=true&w=majority**
