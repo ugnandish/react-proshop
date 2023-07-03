@@ -643,3 +643,5 @@ click on connect <br/>
 Connecting with MongoDB Driver <br/>
 **mongodb+srv://nandishug:<password>@cluster0.wqdxcv4.mongodb.net/?retryWrites=true&w=majority**
 
+**Connect with Mongoose** <br/>
+install - **npm i mongoose** <br/>
