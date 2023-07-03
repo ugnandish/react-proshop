@@ -642,3 +642,4 @@ automatically set the IP address and all - click on button **finish and close**
 click on connect <br/>
 Connecting with MongoDB Driver <br/>
 **mongodb+srv://nandishug:<password>@cluster0.wqdxcv4.mongodb.net/?retryWrites=true&w=majority**
+
