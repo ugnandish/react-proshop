@@ -855,3 +855,34 @@ const orderSchema = mongoose.Schema ({
 const Order = mongoose.model('Order', orderSchema);
 export default Order;
 ```
+
+### Prepare sample Data
+user password is encrypted - install bcryptjs <br/>
+**npm i bcryptjs** <br/>
+create new file **users.js** file under backend/data <br/>
+```
+import bcrypt from 'bcrypt.js';
+const users = [
+    {
+        name: 'Admin User',
+        email: 'admin@email.com',
+        password: bcrypt.hashSync('123456', 10),
+        isAdmin: true,
+    },
+    {
+        name: 'John Doe',
+        email: 'john@email.com',
+        password: bcrypt.hashSync('123456', 10),
+        isAdmin: false,
+    },
+    {
+        name: 'Jane Doe',
+        email: 'jane@email.com',
+        password: bcrypt.hashSync('123456', 10),
+        isAdmin: false,
+    }
+];
+export default users;
+```
+
+and **products.js** - remove id's because mongo creating unique Id for each object
