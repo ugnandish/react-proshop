@@ -886,3 +886,7 @@ export default users;
 ```
 
 and **products.js** - remove id's because mongo creating unique Id for each object
+
+### Seeding Sample Data
+install optional packages <br/>
+**npm i colors** <br/>
