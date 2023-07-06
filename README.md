@@ -645,3 +645,213 @@ Connecting with MongoDB Driver <br/>
 
 **Connect with Mongoose** <br/>
 install - **npm i mongoose** <br/>
+
+### Connect with Mongoose
+**.env file** - update MONGO connection URL
+```
+NODE_ENV=development
+PORT=5000
+MONGO_URI=mongodb+srv://nandishug:*********@cluster0.f5f5ncr.mongodb.net/MERN?retryWrites=true&w=majority
+```
+
+create new **config** folder under backend
+create new file **db.js** under config 
+```
+import mongoose from "mongoose";
+const connectDB = async() => {
+    try {
+        const conn = await mongoose.connect(process.env.MONGO_URI);
+        console.log(`MongoDB Connected: ${conn.connection.host}`);
+    } catch (error) {
+        console.log(`Error: ${error.message}`);
+        process.exit(1);
+    }
+};
+export default connectDB;
+```
+
+### Modeling Our Data
+Create new folder models under backend
+
+**userModels.js** <br/>
+```
+import mongoose from "mongoose";
+const userSchema = new mongoose.Schema ({
+    name: {
+        type: String,
+        required: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    password: {
+        type: String,
+        required: true,
+    },
+    isAdmin: {
+        type: Boolean,
+        required: true,
+        default: false,
+    }
+}, {
+    timestamps: true,
+});
+const User = mongoose.model("User", userSchema);
+export default User;
+```
+
+**productModel.js** <br/>
+```
+import mongoose from "mongoose";
+const reviewSchema = mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: "User",
+    },
+    name: {
+        type: String,
+        required: true,
+    },
+    rating: {
+        type: Number,
+        required: true,
+    },
+    Comment: {
+        type: String,
+        required: true,
+    },
+}, {
+    timestamps: true,
+});
+const productSchema = new mongoose.Schema ({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: "User",
+    },
+    name: {
+        type: String,
+        required: true,
+    },
+    image: {
+        type: String, 
+        required: true,
+    },
+    brand: {
+        type: String,
+        required: true,
+    },
+    category: {
+        type: String,
+        required: true,
+    },
+    description: {
+        type: String,
+        required: true,
+    },
+    reviews: [reviewSchema],
+    rating: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
+    numReviews: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
+    price: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
+    countInStock: {
+        type: Number,
+        required: true,
+        default: 0,
+    }
+}, {
+    timestamps: true,
+});
+const Product = mongoose.model("Product", productSchema);
+export default Product;
+```
+
+**orderModel.js** <br />
+```
+import mongoose from "mongoose";
+const orderSchema = mongoose.Schema ({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: "User",
+    },
+    orderItems: [
+        {
+            name: {type: String, required: true},
+            qty: {type: Number, required: true},
+            image: {type: String, required: true},
+            price: {type: String, required: true},
+            product: {
+                type: mongoose.Schema.Types.ObjectId,
+                required: true,
+                ref: "Product",
+            },
+        }
+    ],
+    shippingAddress: {
+        address: {type: String, required: true},
+        city: {type: String, required: true},
+        postalCode: {type: String, required: true},
+        country: {type: String, required: true},
+    },
+    paymentMethod: {
+        type: String,
+        required: true,
+    },
+    paymentResult: {
+        id: {type: String},
+        status: {type: String},
+        update_time: {type: String},
+        email_address: {type: String},
+    },
+    itemsPrice: {
+        type: Number,
+        required: true,
+        default: 0.0,
+    },
+    shippingPrice: {
+        type: Number,
+        required: true,
+        default: 0.0,
+    },
+    totalPrice: {
+        type: Number,
+        required: true,
+        default: 0.0,
+    },
+    isPaid: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
+    paidAt: {
+        type: Date,
+    },
+    isDelivered: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
+    deliveredAt: {
+        type: Date,
+    }
+}, {
+    timestamps: true,
+});
+const Order = mongoose.model('Order', orderSchema);
+export default Order;
+```
