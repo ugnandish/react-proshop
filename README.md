@@ -861,7 +861,7 @@ user password is encrypted - install bcryptjs <br/>
 **npm i bcryptjs** <br/>
 create new file **users.js** file under backend/data <br/>
 ```
-import bcrypt from 'bcrypt.js';
+import bcrypt from 'bcryptjs';
 const users = [
     {
         name: 'Admin User',
@@ -890,3 +890,83 @@ and **products.js** - remove id's because mongo creating unique Id for each obje
 ### Seeding Sample Data
 install optional packages <br/>
 **npm i colors** <br/>
+
+create new file **seeder.js** file under backend folder <br/>
+```
+console.log(process.argv)
+```
+
+run cmd terminal from roor folder - **node backend/seeder -d**
+
+```
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import colors from "colors";
+import users from "./data/users.js";
+import products from "./data/products.js";
+import User from "./models/userModel.js";
+import Product from "./models/productModel.js";
+import Order from "./models/orderModel.js";
+import connectDB from "./config/db.js";
+
+dotenv.config();
+
+connectDB();
+
+const importData = async () => {
+    try {
+        await Order.deleteMany();
+        await Product.deleteMany();
+        await User.deleteMany();
+
+        const createdUsers = await User.insertMany(users);
+
+        const adminUser = createdUsers[0]._id;
+
+        const sampleProducts = products.map((product) => {
+            return {...product, user: adminUser };
+        });
+
+        await Product.insertMany(sampleProducts);
+        console.log('Data Imported!'.green.inverse);
+        process.exit();
+    } catch(error) {
+        console.error(`${error}`.red.inverse);
+        process.exit(1);
+    }
+}
+
+const destoryData = async () => {
+    try {
+        await Order.deleteMany();
+        await Product.deleteMany();
+        await User.deleteMany();
+
+        console.log('Data Destoryed'.green.inverse);
+        process.exit();
+    } catch(error) {
+        console.error(`${error}`.red.inverse);
+        process.exit(1);
+    }    
+};
+
+if(process.argv[2] === '-d') {
+    destoryData();
+} else {
+    importData();
+}
+```
+
+package.json 
+```
+scripts: {
+  ....
+  "data:import": "node backend/seeder.js",
+  "data:destory": "node backend/seeder.js -d"
+}
+```
+
+run terminal - npm run data:import <br/>
+check in mongo compass data's are available <br/>
+run terminal - npm run data:destory <br/>
+check in mongo compass data's are deleted
