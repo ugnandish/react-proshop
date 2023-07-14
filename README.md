@@ -987,9 +987,29 @@ export default asyncHandler;
 
 **productRoutes.js**
 ```
+import express from "express";
+const router = express.Router();
+import asyncHandler from "../middleware/asyncHandler.js";
+import Product from "../models/productModel.js";
+
+router.get('/', asyncHandler (async (req, res) => {
+    const products = await Product.find({});
+    res.json(products);
+}));
+
+router.get('/:id', asyncHandler(async (req, res) => {
+    const product = await Product.findById(req.params.id);
+    if(product) {
+        return res.json(product);
+    }
+    res.status(404).json({message: 'Product not found'});
+}));
+
+export default router;
 ```
 
-remove below lines from server.js and update in routes/productRoutes.js
+remove below lines from server.js and update in routes/productRoutes.js <br/>
+**server.js**
 ```
 app.get('/api/products', (req, res) => {
     res.json(products);
@@ -1002,6 +1022,23 @@ app.get('/api/products/:id', (req, res) => {
 ```
 
 ```
+import express  from "express";
+import dotenv from "dotenv";
+dotenv.config();
+import connectDB from "./config/db.js";
+import productRoutes from "./routes/productRoutes.js";
+
+const port = process.env.PORT || 5000;
+connectDB();
+const app = express();
+
+app.get('/', (req, res) => {
+    res.send('API is running...')
+});
+
+app.use('/api/products', productRoutes);
+
+app.listen(port, () => console.log(`server running on port ${port}`));
 ```
 
 
