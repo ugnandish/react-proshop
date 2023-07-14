@@ -970,3 +970,38 @@ run terminal - npm run data:import <br/>
 check in mongo compass data's are available <br/>
 run terminal - npm run data:destory <br/>
 check in mongo compass data's are deleted
+
+### Get Products from Database
+Create new folder "**routes**" under backend folder <br/>
+Create new file "**productRoutes.js**" under routes folder <br/>
+
+create new folder "**middleware**" under backend folder <br/>
+create new file "**asyncHandler.js**" under middleware folder <br/>
+**asyncHandler.js**
+```
+const asyncHandler = fn => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+}
+export default asyncHandler;
+```
+
+**productRoutes.js**
+```
+```
+
+remove below lines from server.js and update in routes/productRoutes.js
+```
+app.get('/api/products', (req, res) => {
+    res.json(products);
+});
+
+app.get('/api/products/:id', (req, res) => {
+    const product = products.find((p) => p._id === req.params.id);
+    res.json(product);
+});
+```
+
+```
+```
+
+
