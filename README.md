@@ -1383,3 +1383,70 @@ const ProductScreen = () => {
 export default ProductScreen
 ```
 
+### Loader & Message Components
+create new file **Loader.js** under frontend/src/components <br/>
+**Loader.js**
+```
+import { Spinner } from "react-bootstrap";
+const Loader = () => {
+    return (
+        <Spinner 
+            animation="border"
+            role="status"
+            style={{
+                width:'100px',
+                height:'100px',
+                margin:'auto',
+                display:'block',
+            }} > </Spinner>
+    );
+}
+export default Loader;
+```
+
+create new file **Message.js** under frontend/src/components <br/>
+**Message.js**
+```
+import { Alert } from "react-bootstrap";
+const Message = ({variant, children}) => {
+    return (
+        <Alert variant={variant}>
+            {children}
+        </Alert>
+    )
+}
+Message.defaultProps = {
+    variant: 'info',
+}
+export default Message;
+```
+
+update in **HomeScreen.js** and **ProductScreen.js** <br/>
+**HomeScreen.js**
+```
+....
+import Loader from '../components/Loader.js';
+import Message from '../components/Message';
+....
+{isLoading? (<Loader />) :
+      error? (
+      <Message variant='danger'>{error?.data?.message || error.error}</Message>) : (
+        <>
+          <h1>Latest Products</h1>
+....
+```
+
+**ProductScreen.js**
+```
+....
+import Loader from '../components/Loader.js';
+import Message from '../components/Message';
+....
+{isLoading ? (
+        <Loader />
+      ) : error? (
+        <Message variant='danger'>{error?.data?.message || error.error}</Message>
+      ) : (
+        <Row>
+....
+```
