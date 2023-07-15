@@ -1145,3 +1145,84 @@ router.route('/:id').get(getProductById);
 
 export default router;
 ```
+
+## Redux Toolkit Setup & State Management
+### Redux & state overview
+
+### Redux Store & API Slice
+Redux - https://redux.js.org/ <br/>
+Redux Toolkit - https://redux-toolkit.js.org/ <br/>
+
+install - **npm i @reduxjs/toolkit react-redux** 
+
+create new file **store.js** under frontend/src folder <br/>
+```
+import {configureStore} from '@reduxjs/toolkit';
+const store = configureStore({
+    reducer: {}
+});
+export default store;
+```
+
+update in **index.js**
+```
+....
+import { Provider } from 'react-redux';
+import store from './store.js';
+....
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <Provider store={store} >
+      <RouterProvider router={router} />
+    </Provider>
+  </React.StrictMode>
+);
+....
+```
+
+create new file **constants.js** under frontend/src folder <br/>
+**constants.js**
+```
+export const BASE_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000':'';
+export const PRODUCTS_URL = '/api/products';
+export const USERS_URL = '/api/users';
+export const ORDERS_URL = '/api/orders';
+export const PAYPAL_URL = '/api/config/paypal';
+```
+
+Slice concept in redux-toolkit way to organize state
+
+create new folder **slices** under frontend/src <br/>
+create new file **apiSlice.js** under slices <br/>
+**apiSlice.js**
+```
+import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react';
+import { BASE_URL } from '../constants';
+
+const baseQuery = fetchBaseQuery({baseUrl:BASE_URL});
+
+export const apiSlice = createApi({
+    baseQuery,
+    tagTypes: ['Product', 'Order', 'User'],
+    endpoints: (builder) => ({}),
+});
+```
+
+update in **store.js** 
+```
+import {configureStore, getDefaultMiddleware} from '@reduxjs/toolkit';
+import { apiSlice } from './slices/apiSlice';
+
+const store = configureStore({
+    reducer: {
+        [apiSlice.reducerPath]: apiSlice.reducer,
+    },
+    middleware: (getDefaultMiddleware) => 
+        getDefaultMiddleware().concat(apiSlice.middleware),
+        devTools: true,
+});
+
+export default store;
+```
+
