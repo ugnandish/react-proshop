@@ -1001,8 +1001,9 @@ router.get('/:id', asyncHandler(async (req, res) => {
     const product = await Product.findById(req.params.id);
     if(product) {
         return res.json(product);
+    } else {
+        res.status(404).json({message: 'Product not found'});
     }
-    res.status(404).json({message: 'Product not found'});
 }));
 
 export default router;
@@ -1041,4 +1042,61 @@ app.use('/api/products', productRoutes);
 app.listen(port, () => console.log(`server running on port ${port}`));
 ```
 
+### Custom Error Middleware
+in Express default error handler <br/>
+**https://expressjs.com/en/guide/error-handling.html**
 
+create new file **errorMiddleware.js** under backend/middleware folder <br/>
+**errorMiddleware.js**
+```
+const notFound = (req, res, next) => {
+    const error = new Error(`Not Found - ${req.originalUrl}`);
+    res.status(404);
+    next(error);
+};
+
+const errorHandler = (err, req, res, next) => {
+    let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+    let message = err.message;
+
+    //check for mongoose bad objectId
+    if(err.name === 'CastError' && err.kind === 'ObjectId') {
+        message = `Resource not found`;
+        statusCode = 404;
+    }
+
+    res.status(statusCode).json({
+        message,
+        stack: process.env.NODE_ENV === 'production' ? '*' : err.stack,
+    });
+};
+
+export {notFound, errorHandler};
+```
+
+update in **server.js** <br/>
+**server.js**
+```
+....
+import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
+....
+app.use(notFound);
+app.use(errorHandler);
+....
+```
+
+and update in **productRoutes.js** <br/>
+**productRoutes.js**
+```
+....
+router.get('/:id', asyncHandler(async (req, res) => {
+    const product = await Product.findById(req.params.id);
+    if(product) {
+        return res.json(product);
+    } else {
+        res.status(404);
+        throw new Error('Resource not found');
+    }
+}));
+....
+```
