@@ -1225,3 +1225,58 @@ const store = configureStore({
 export default store;
 ```
 
+### products API Slice & Get Products EndPoint
+**constants.js** remove the BASE_URL <br/>
+export const BASE_URL = '';
+
+create new file **productsApiSlice.js** under slice folder
+**productsApiSlice.js**
+```
+import { PRODUCTS_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
+export const productsApiSlice = apiSlice.injectEndpoints({
+    endpoints: (builder) => ({
+        getProducts: builder.query({
+            query:() => ({
+                url: PRODUCTS_URL,
+            }),
+            keepUnusedDataFor: 5,
+        }),
+    }),
+})
+export const {useGetProductsQuery} = productsApiSlice;
+```
+
+update in **HomeScreen.js** <br/>
+remove axios, useEffect, useState 
+**HomeScreen.js**
+```
+import React from 'react';
+import {Row, Col} from 'react-bootstrap';
+import Product from '../components/Product';
+import { useGetProductsQuery } from '../slices/productsApiSlice';
+
+const HomeScreen = () => {
+  const {data:products, isLoading, error} = useGetProductsQuery();
+  return (
+    <>
+      {isLoading? (<h2>Loading...</h2>) :
+      error? (<div>{error?.data?.message || error.error}</div>) : (
+        <>
+          <h1>Latest Products</h1>
+      <Row>
+        {products.map((product) => (
+
+          <Col key={product._id} sm={12} md={6} lg={4} xl={3}>
+            <Product product={product} />
+          </Col>
+        )) }
+      </Row>
+        </>
+      )
+      }
+    </>
+  )
+}
+export default HomeScreen;
+```
