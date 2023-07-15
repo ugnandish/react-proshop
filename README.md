@@ -1100,3 +1100,48 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 ....
 ```
+
+### Product Controller
+create new folder **controllers** under backend <br/>
+create new file **productController.js** under controllers <br/>
+**productController.js**
+```
+import asyncHandler from "../middleware/asyncHandler.js";
+import Product from "../models/productModel.js";
+
+//@desc Fetch all products
+//@route GET /api/products
+//@access Public
+const getProducts = asyncHandler(async (req, res) => {
+    const products = await Product.find({});
+    res.json(products);
+});
+
+//@desc Fetch a products
+//@route GET /api/products/:id
+//@access Public
+const getProductById = asyncHandler(async (req, res) => {
+    const product = await Product.findById(req.params.id);
+    if(product) {
+        return res.json(product);
+    } else {
+        res.status(404);
+        throw new Error('Resource not found');
+    }
+});
+
+export {getProducts, getProductById};
+```
+
+and update in **productRoutes.js** <br/>
+**productRoutes.js**
+```
+import express, { Router } from "express";
+const router = express.Router();
+import { getProducts, getProductById } from "../controllers/productController.js";
+
+router.route('/').get(getProducts);
+router.route('/:id').get(getProductById);
+
+export default router;
+```
