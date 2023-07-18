@@ -1450,3 +1450,37 @@ import Message from '../components/Message';
         <Row>
 ....
 ```
+
+## Shopping Cart Functionality
+### Cart Slice & Reducer
+create new file **cartSlice.js** under frontent/src/slices <br/>
+**cartSlice.js**
+```
+import { createSlice } from "@reduxjs/toolkit";
+const initialState = localStorage.getItem("cart") ? JSON.parse(localStorage.getItem("cart")) : {cartItems: []};
+const cartSlice = createSlice({
+  name: "cart",
+  initialState,
+  reducers: {}
+});
+export default cartSlice.reducer;
+```
+
+update in **store.js** <br/>
+**store.js**
+```
+import {configureStore} from '@reduxjs/toolkit';
+import { apiSlice } from './slices/apiSlice.js';
+import cartSliceReducer from './slices/cartSlice.js';
+
+const store = configureStore({
+    reducer: {
+        [apiSlice.reducerPath]: apiSlice.reducer,
+        cart: cartSliceReducer,
+    },
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiSlice.middleware),
+    devTools: true,
+});
+
+export default store;
+```
