@@ -1752,3 +1752,37 @@ const Header = () => {
 
 export default Header;
 ```
+
+### Cart Screen
+create new file **CartScreen.js** under screen folder <br/>
+**CartScreen.js**
+```
+import React from 'react';
+import {Link, useNavigate} from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import {Row, Col, ListGroup, Image, Form, Button, Card} from 'react-bootstrap';
+import {FaTarsh} from 'react-icons/fa';
+import Message from '../components/Message';
+
+const CartScreen = () => {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    return (
+        <div>CartScreen</div>
+    )
+}
+
+export default CartScreen
+```
+
+update in **index.js** file <br/>
+**index.js**
+```
+....
+import CartScreen from './screens/CartScreen';
+....
+
+<Route  path='/cart' element={<CartScreen />} />
+....
+```
