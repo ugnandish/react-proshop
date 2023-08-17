@@ -1926,3 +1926,124 @@ const checkoutHandler = () => {
 </ListGroup.Item>
 ....
 ```
+
+## Backend Authentication
+### User Routes & Controller
+create new file "**userRoutes.js**" under backend/routes <br/>
+create new file "**userController.js**" under backend/controllers <br/>
+
+**userController.js**
+```
+import asyncHandler from '../middleware/asyncHandler.js';
+import User from '../models/userModel.js';
+
+//@desc Auth user & get token
+//@route POST /api/users/login
+//@access Public
+const authUser = asyncHandler(async (req, res) => {
+    res.send('auth user');
+});
+
+//@desc Register User
+//@route POST /api/users
+//@access Public
+const registerUser = asyncHandler(async (req, res) => {
+    res.send('register user');
+});
+
+//@desc Logout User/clear cookie
+//@route POST /api/users/logout
+//@access Private
+const logoutUser = asyncHandler(async (req, res) => {
+    res.send('logout user');
+});
+
+//@desc Get User profile
+//@route GET /api/users/profile
+//@access Private
+const getUserProfile = asyncHandler(async (req, res) => {
+    res.send('get user profile');
+});
+
+//@desc update User profile
+//@route PUT /api/users/profile
+//@access Private
+const updateUserProfile = asyncHandler(async (req, res) => {
+    res.send('update user profile');
+});
+
+//@desc Get users
+//@route GET /api/users
+//@access Private/Admin
+const getUsers = asyncHandler(async (req, res) => {
+    res.send('get users');
+});
+
+//@desc Get user by ID
+//@route GET /api/users/:id
+//@access Private/Admin
+const getUserByID = asyncHandler(async (req, res) => {
+    res.send('get users by id');
+});
+
+//@desc Delete users
+//@route DELETE /api/users/:id
+//@access Private/Admin
+const deleteUser = asyncHandler(async (req, res) => {
+    res.send('delete user');
+});
+
+//@desc Update user
+//@route PUT /api/users/:id
+//@access Private/Admin
+const updateUser = asyncHandler(async (req, res) => {
+    res.send('update user');
+});
+
+export {
+    authUser,
+    registerUser,
+    logoutUser,
+    getUserProfile,
+    updateUserProfile,
+    getUsers,
+    deleteUser,
+    getUserByID,
+    updateUser
+};
+```
+
+**userRoutes.js**
+```
+import express from 'express';
+const router = express.Router();
+
+import {
+    authUser,
+    registerUser,
+    logoutUser,
+    getUserProfile,
+    updateUserProfile,
+    getUsers,
+    deleteUser,
+    getUserByID,
+    updateUser
+} from '../controllers/userController.js';
+
+router.route('/').post(registerUser).get(getUsers);
+// router.post('/logout', logoutUser);
+// router.post('/login', authUser);
+// router.route('/profile').get(getUserProfile).put(updateUserProfile);
+// router.route('/:id').delete(deleteUser).get(getUserByID).put(updateUser);
+
+export default router;
+```
+
+and update in **server.js** <br/>
+```
+import userRoutes from './routes/userRoutes.js';
+....
+....
+app.use('/api/users', userRoutes);
+....
+```
