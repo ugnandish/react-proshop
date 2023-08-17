@@ -2096,3 +2096,30 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
         });
     }
 ```
+
+### How Do JSON Web Tokens Work? JWT HTTP only Cookie
+install JWT in main root folder <br/>
+**npm i jsonwebtoken** <br/>
+**userController.js**
+```
+import jwt from 'jsonwebtoken';
+...
+   if(user && (await user.matchPassword(password))) {
+        const token = jwt.sign({userId:user._id}, process.env.JWT_SECRET, {
+            expiresIn:'30d',
+        });
+        //set JWT as HTTP-only cookie
+        res.cookie('jwt', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV !== 'development',
+            sameSite: 'strict',
+            maxAge: 30 * 24 * 60 * 60 * 1000 //30days
+        })
+...
+```
+
+**.env file** <br/>
+JWT_SECRET = abc123
+
+**.example_env** <br/>
+JWT_SECRET = ADD_YOUR_SECRET
