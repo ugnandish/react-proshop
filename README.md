@@ -2047,3 +2047,52 @@ import userRoutes from './routes/userRoutes.js';
 app.use('/api/users', userRoutes);
 ....
 ```
+
+### User Email & Password Validation
+**server.js**
+```
+//Body parser middleware
+app.use(express.json());
+app.use(express.urlencoded({extended:true}));
+```
+
+**userController.js** <br/>
+```
+const authUser = asyncHandler(async (req, res) => {
+    const {email, password} = req.body;
+    const user = await User.findOne({email});
+    if(user) {
+        res.json({
+            _id:user._id,
+            name:user.name,
+            email:user.email,
+            isAdmin:user.isAdmin
+        });
+    } else {
+        res.status(401);
+        throw new Error('Invalid email or password');
+    }
+    res.send('auth user');
+});
+```
+
+**userModel.js** <br/>
+```
+import bcrypt from 'bcryptjs';
+....
+userSchema.methods.matchPassword = async function(enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+};
+```
+
+**userController.js** <br/>
+```
+ if(user && (await user.matchPassword(password))) {
+        res.json({
+            _id:user._id,
+            name:user.name,
+            email:user.email,
+            isAdmin:user.isAdmin
+        });
+    }
+```
