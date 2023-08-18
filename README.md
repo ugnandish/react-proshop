@@ -2149,7 +2149,7 @@ import asyncHandler from './asyncHandler';
 import User from '../models/userModel';
 
 //protect routes
-export const protect = asyncHandler(async (req, res, next) => {
+const protect = asyncHandler(async (req, res, next) => {
     let token;
 
     //read the JWT from the cookie
