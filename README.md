@@ -2212,3 +2212,104 @@ const logoutUser = asyncHandler(async (req, res) => {
     res.status(200).json({message:'Logged out successfully'});
 });
 ```
+
+### User Register EndPoint & Encryption
+modify the below code in **userController.js** <br/>
+```
+//@desc Register User
+//@route POST /api/users
+//@access Public
+const registerUser = asyncHandler(async (req, res) => {
+    const {name, email, password} = req.body;
+    const userExists = await User.findOne({email});
+    if(userExists) {
+        res.status(400);
+        throw new Error('user already exists');
+    }
+    const user = await User.create({
+        name,
+        email,
+        password
+    });
+    if(user) {
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            isAdmin: user.isAdmin
+        });
+    } else {
+        res.status(400);
+        throw new Error('Invalid user data');
+    }
+});
+```
+
+and modify the below changes in **userModel.js** <br/>
+```
+....
+....
+userSchema.methods.matchPassword = async function(enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+};
+
+userSchema.pre('save', async function(next) {
+    if(!this.isModified('password')) {
+        next();
+    }
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+});
+```
+
+create new folder "**utils**" under backend folder <br/>
+create new file "**generateToken.js**" under backend/utils <br/>
+**generateToken.js**
+```
+import jwt from "jsonwebtoken";
+
+const generateToken = (res, userId) => {
+    const token = jwt.sign({userId}, process.env.JWT_SECRET, {
+        expiresIn: '30d'
+    });
+
+    //set JWT as HTTPOnly cookie
+    res.cookie('jwt', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV !== 'development',
+        sameSite: 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000 //30days
+    });
+}
+
+export default generateToken;
+```
+
+**userController.js** <br/>
+remove - import jwt from 'jwttoken'
+```
+import generateToken from '../utils/generateToken.js'
+....
+....
+if(user && (await user.matchPassword(password))) {
+        generateToken(res, user._id);
+        res.json({
+            _id:user._id,
+            name:user.name,
+            email:user.email,
+            isAdmin:user.isAdmin
+        });
+    }
+....
+....
+if(user) {
+        generateToken(res, user._id);
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            isAdmin: user.isAdmin
+        });
+    }
+....
+```
