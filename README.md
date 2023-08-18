@@ -2123,3 +2123,77 @@ JWT_SECRET = abc123
 
 **.example_env** <br/>
 JWT_SECRET = ADD_YOUR_SECRET
+
+### Auth Middleware & Endpoint
+install **cookie-parser** in root folder <br/>
+**npm i cookie-parser** <br/>
+
+**server.js** <br/>
+```
+import cookieParser from "cookie-parser";
+....
+....
+//Body parser middleware
+app.use(express.json());
+app.use(express.urlencoded({extended:true}));
+....
+//cookie parser middleware
+app.use(cookieParser());
+```
+
+create new file under middleware folder <br />
+**authMiddleware.js**
+```
+import jwt from 'jsonwebtoken';
+import asyncHandler from './asyncHandler';
+import User from '../models/userModel';
+
+//protect routes
+export const protect = asyncHandler(async (req, res, next) => {
+    let token;
+
+    //read the JWT from the cookie
+    token = req.cookies.jwt;
+    if(token) {
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            req.user = await User.findById(decoded.userId).select('-password');
+            next();
+        } catch (error) {
+            console.log(error);
+            res.status(401);
+            throw new Error('Not authorized, token failed');
+        }
+    } else { 
+        res.status(401);
+        throw new Error('Not authorized, no token');
+    }
+});
+
+//Admin middleware
+const admin = (req, res, next) => {
+    if(req.user && req.user.isAdmin) {
+        next();
+    } else {
+        res.status(401);
+        throw new Error('not authorized as admin');
+    }
+}
+
+export {protect, admin};
+```
+
+modify the **userRoutes.js** <br />
+```
+....
+....
+import { protect, admin } from '../middleware/authMiddleware.js';
+
+router.route('/').post(registerUser).get(protect, admin, getUsers);
+router.post('/logout', logoutUser);
+router.post('/auth', authUser);
+router.route('/profile').get(protect, getUserProfile).put(protect, updateUserProfile);
+router.route('/:id').delete(protect, admin, deleteUser).get(protect, admin, getUserByID).put(protect, admin, updateUser);
+
+export default router;
+```
