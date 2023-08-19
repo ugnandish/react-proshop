@@ -2603,81 +2603,63 @@ export default LoginScreen;
 update in **Header.js** <br/>
 **Header.js**
 ```
-import { useState, useEffect } from "react";
-import {Link, useLocation, useNavigate} from "react-router-dom";
-import {Form, Button, Row, Col} from 'react-bootstrap';
-import { useDispatch, useSelector } from "react-redux";
-import FormContainer from "../components/FormContainer.js";
-import Loader from "../components/Loader";
-import { useLoginMutation } from "../slices/usersApiSlice";
-import { setCredentials } from "../slices/authSlice";
-import {toast} from 'react-toastify';
+import react from 'react'
+import {Badge, Navbar, Nav, Container, NavDropdown} from 'react-bootstrap';
+import {FaShoppingCart, FaUser} from 'react-icons/fa';
+import {LinkContainer} from 'react-router-bootstrap';
+import {useSelector} from 'react-redux';
 
-const LoginScreen = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+const Header = () => {
+  const {cartItems} = useSelector((state) => state.cart);
+  const {userInfo} = useSelector((state) => state.auth);
 
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
+  const logoutHandler = () => {
+    console.log('logout');
+  }
 
-    const [login, {isLoading}] = useLoginMutation();
-    const {userInfo} = useSelector((state) => state.auth);
-    const {search} = useLocation();
-    const sp = new URLSearchParams(search);
-    const redirect = sp.get('redirect') || '/';
-
-    useEffect(() => {
-        if(userInfo) {
-            navigate(redirect);
-        }
-    }, [userInfo, redirect, navigate]);
-
-    const submitHandler = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await login({email, password}).unwrap();
-            dispatch(setCredentials({...res}));
-            navigate(redirect);
-        } catch(err) {
-            toast.error(err?.data.message || err.error);
-        }
-    };
-
-    return (
-        <FormContainer>
-            <h1>Sign In</h1>
-            <Form onSubmit={submitHandler}>
-                <Form.Group controlId="email" className="my-3">
-                    <Form.Label>Email Address</Form.Label>
-                    <Form.Control 
-                        type="email"
-                        placeholder="Enter email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)} >
-                    </Form.Control>
-                </Form.Group>
-                <Form.Group controlId="password" className="my-3">
-                    <Form.Control 
-                        type="password"
-                        placeholder="Enter password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)} >
-                    </Form.Control>
-                </Form.Group>
-                <Button type="submit" variant="primary" className="mt-2">
-                    Sign In
-                </Button>
-                {isLoading && <Loader />}
-            </Form>
-            <Row className="py-3">
-                <Col>
-                    new customer ? {''}
-                    <Link to = {redirect ? `/register ? redirect = ${redirect}` : '/register'}> Register </Link>
-                </Col>
-            </Row>
-        </FormContainer>
-    )
+  return (
+    <header>
+      <Navbar bg='dark' variant='dark' expand='md' collapseOnSelect>
+        <Container>
+          <LinkContainer to='/'>
+            <Navbar.Brand>ProShop</Navbar.Brand>
+          </LinkContainer>
+          <Navbar.Toggle aria-controls='basic-navbar-nav' />
+          <Navbar.Collapse id='basic-navbar-nav'>
+            <Nav className='ms-auto'>
+              <LinkContainer to='/cart'>
+                <Nav.Link >
+                  <FaShoppingCart /> Cart
+                  {cartItems.length > 0 && (
+                    <Badge pill bg='success' style = {{marginleft:'5px'}}>
+                      {cartItems.reduce((a,c) => a + c.qty, 0)}
+                    </Badge>                
+                  )}
+                </Nav.Link>
+              </LinkContainer>
+              {userInfo ? (
+                <NavDropdown title={userInfo.name} id='username'>
+                  <LinkContainer to = '/profile'>
+                    <NavDropdown.Item>Profile</NavDropdown.Item>
+                  </LinkContainer>
+                  <NavDropdown.Item onClick={logoutHandler}>
+                    Logout
+                  </NavDropdown.Item>
+                </NavDropdown>
+              ) : (
+                <LinkContainer to='/login'>
+                <Nav.Link>
+                  <FaUser />Sign In
+                </Nav.Link>
+              </LinkContainer>
+              )}
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+    </header>
+  )
 }
 
-export default LoginScreen;
+export default Header;
 ```
