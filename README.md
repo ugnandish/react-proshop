@@ -2424,13 +2424,13 @@ export const {useLoginMutation} = usersApiSlice;
 create new file "**FormContainer.js**" under frontend/components <br/>
 **FormContainer.js**
 ```
-import { Container, Row, Col } from "react-dom";
-const FormContainer = ({childern}) => {
+import { Container, Row, Col } from "react-bootstrap";
+const FormContainer = ({children}) => {
     return (
         <Container>
             <Row className="justify-content-md-container">
                 <Col xs={12} md={6}>
-                    {childern}
+                    {children}
                 </Col>
             </Row>
         </Container>
