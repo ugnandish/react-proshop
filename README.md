@@ -2515,6 +2515,7 @@ update in **App.js** <br />
 **App.js**
 ```
 import {ToastContainer} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 <ToastContainer />
 ```
 
