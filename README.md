@@ -2364,4 +2364,58 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 ....
 ```
 
+## Frontend Authentication
+### Auth & User API Slice
+create new file "**authSlice.js**" under frontend/slices <br/>
+**authSlice.js**
+```
+import {createSlice} from '@reduxjs/toolkit';
 
+const initialState = {
+    userInfo: localStorage.getItem('userInfo')?JSON.parse(localStorage.getItem('userInfo')):null
+}
+
+const authSlice = createSlice ({
+    name: 'auth',
+    initialState,
+    reducers : {
+        setCredentials: (state, action) => {
+            state.userInfo = action.payload;
+            localStorage.setItem('userInfo', JSON.stringify(action.payload));
+        }
+    }
+})
+
+export const {setCredentials} = authSlice.actions;
+export default authSlice.reducer;
+```
+
+and update in **store.js** <br/>
+```
+import authSliceReducer from './slices/authSlice.js';
+....
+....
+auth: authSliceReducer
+....
+```
+
+create new file **usersApiSlice.js** under frontend/slices <br/>
+**usersApiSlice.js**
+```
+import { USERS_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
+
+export const usersApiSlice = apiSlice.injectEndpoints ({
+    endpoints: (builder) => ({
+        login: builder.mutation ({
+            query: (data) => ({
+                url: `${USERS_URL}/auth`, 
+                    method: 'POST',
+                    body: data,
+            })
+        })
+    })
+})
+
+export const {useLoginMutation} = usersApiSlice;
+```
