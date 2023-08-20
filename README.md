@@ -2664,3 +2664,51 @@ const Header = () => {
 
 export default Header;
 ```
+
+### User Logout
+add logout function into **usersApiSlice.js** <br/>
+```
+....
+logout: builder.mutation ({
+            query: () => ({
+                url: `${USERS_URL}/logout`, 
+                    method: 'POST'
+            })
+        })
+
+export const {useLoginMutation, useLogoutMutation} = usersApiSlice;
+```
+
+add logout function into **authSlice.js** <br/>
+```
+....
+logout: (state, action) => {
+            state.userInfo = null;
+            localStorage.removeItem('userInfo');
+        }
+export const {setCredentials, logout} = authSlice.actions;
+```
+
+update in **Header.js** <br/>
+```
+....
+import { useNavigate } from 'react-router-dom';
+import {useSelector, useDispatch} from 'react-redux';
+import { useLoginMutation, useLogoutMutation } from '../slices/usersApiSlice';
+import {logout} from '../slices/authSlice';
+....
+const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [logoutApiCall] = useLogoutMutation();
+  
+  const logoutHandler = async () => {
+    try {
+      await logoutApiCall().unwrap();
+      dispatch(logout());
+      navigate('/login');
+    } catch(err) {
+      console.log(err);
+    }
+  }
+....
+```
