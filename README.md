@@ -2941,4 +2941,30 @@ import ShippingScreen from './screens/ShippingScreen.js';
 <Route path='/shipping' element={<ShippingScreen />} />
 ....
 ```
- 
+
+### Private Routes
+create new file "**PrivateRoute.js**" under frontend/components <br/>
+**PrivateRoute.js** 
+```
+import React from 'react'
+import { Outlet, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+
+const PrivateRoute = () => {
+    const {userInfo} = useSelector((state) => state.auth);
+    return userInfo?<Outlet />:<Navigate to ='/login' replace />;
+};
+
+export default PrivateRoute;
+```
+
+and update in **index.js**
+```
+....
+import PrivateRoute from './components/PrivateRoute.js';
+....
+<Route path='' element={<PrivateRoute />}>
+        <Route path='/shipping' element={<ShippingScreen />} />
+</Route>
+....
+```
