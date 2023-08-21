@@ -2875,7 +2875,7 @@ const ShippingAddress = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const submitHandler = () => {
+    const submitHandler = (e) => {
         e.preventDefault();
         dispatch(saveShippingAddress ({
             address, city, postalCode, country    
