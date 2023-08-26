@@ -3034,4 +3034,181 @@ return (
 .....
 ```
 
+### Payment Method
+udpate in **cartSlice.js** <br />
+```
+.....
+return updateCart(state);
+},
+savePaymentMethod: (state, action) => {
+      state.paymentMethod = action.payload;
+      return updateCart(state);
+    },
+.....
+.....
+export const {addToCart, removeFromCart, saveShippingAddress, savePaymentMethod} = cartSlice.actions;
+```
 
+create new file **PaymentScreen.js** under frontend/screens <br />
+**PaymentScreen.js**
+```
+import {useState, useEffect} from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import {Form, Button, Col} from 'react-bootstrap';
+import FormContainer from '../components/FormContainer';
+import CheckoutSteps from '../components/CheckoutSteps';
+import { savePaymentMethod } from '../slices/cartSlice';
+
+const PaymentScreen = () => {
+    const [paymentMethod, setPaymentMethod] = useState('PayPal');
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const cart = useSelector((state) => state.cart);
+    const {shippingAddress} = cart;
+
+    useEffect(() => {
+        if(!shippingAddress) {
+            navigate('/shipping');
+        }
+    }, [shippingAddress, navigate]);
+
+    const submitHandler = (e) => {
+        e.preventDefault();
+        dispatch(savePaymentMethod(paymentMethod));
+        navigate('/placeholder');
+    };
+
+    return (
+        <FormContainer>
+            <CheckoutSteps step1 step2 step3 step4 />
+            <h1>Payment Method</h1>
+            <Form onSubmit = {submitHandler}>
+                <Form.Group>
+                    <Form.Label as='Legend'>Select Method</Form.Label>
+                    <Col>
+                        <Form.Check 
+                            type='radio'
+                            className='my-2'
+                            label='PayPal or Credit Card'
+                            id='PayPal'
+                            name='paymentMethod'
+                            value='PayPal'
+                            checked
+                            onChange = {(e) => setPaymentMethod(e.target.value)}>
+                        </Form.Check>
+                    </Col>
+                </Form.Group>
+                <Button type='submit' variant='primary'>Continue</Button>
+            </Form>
+        </FormContainer>
+    )
+}
+
+export default PaymentScreen;
+```
+
+update in **index.js** <br />
+**index.js** 
+```
+.....
+import PaymentScreen from './screens/PaymentScreen.js';
+......
+......
+<Route path='/payment' element={<PaymentScreen />} />
+......
+```
+
+### Order Routes & Controller
+create new file **orderController.js** under backend/controllers <br />
+**oderController.js** 
+```
+import asyncHandler from '../middleware/asyncHandler.js'
+import Order from '../models/orderModel.js';
+
+//@desc create new order
+//@route POST /api/orders
+//@access Private
+const addOrderItems = asyncHandler(async(req, res) => {
+    res.send('add order items');
+});
+
+//@desc Get logged in user orders
+//@route GET /api/orders/myorders
+//@access Private
+const getMyOrders = asyncHandler(async(req, res) => {
+    res.send('get my orders');
+});
+
+//@desc Get order by ID
+//@route GET /api/orders/:id
+//@access Private
+const getOrderById = asyncHandler(async(req, res) => {
+    res.send('get order by id');
+});
+
+//@desc Update order to paid
+//@route GET /api/orders/:id/pay
+//@access Private
+const updateOrderToPaid = asyncHandler(async(req, res) => {
+    res.send('update order to paid');
+});
+
+//@desc update order to delivered
+//@route GET /api/orders/:id/deliver
+//@access Private/Admin
+const updateOrderToDelivered = asyncHandler(async(req, res) => {
+    res.send('update order to delivered');
+});
+
+//@desc Get all orders
+//@route GET /api/orders
+//@access Private/Admin
+const getOrders = asyncHandler(async(req, res) => {
+    res.send('get all orders');
+});
+
+export {
+    addOrderItems,
+    getMyOrders,
+    getOrderById,
+    updateOrderToPaid,
+    updateOrderToDelivered,
+    getOrders
+};
+```
+
+create new file **orderRoutes.js** under backend/routes <br />
+**oderRoutes.js** 
+```
+import express from 'express';
+const router = express.Router();
+import {
+    addOrderItems,
+    getMyOrders,
+    getOrderById,
+    updateOrderToPaid,
+    updateOrderToDelivered,
+    getOrders
+} from '../controllers/orderController.js'
+import {protect, admin} from '../middleware/authMiddleware.js';
+
+router.route('/').post(protect, addOrderItems).get(protect, admin, getOrders);
+router.route('/mine').get(protect, getMyOrders);
+router.route('/:id').get(protect, admin, getOrderById);
+router.route('/:id/pay').put(protect, updateOrderToPaid);
+router.route('/:id/deliver').put(protect, admin, updateOrderToDelivered);
+
+export default router;
+```
+
+update in **server.js** <br />
+**server.js** <br />
+```
+.....
+import orderRoutes from './routes/orderRoutes.js';
+.....
+app.use('/api/orders', orderRoutes);
+.....
+```
