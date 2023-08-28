@@ -3311,3 +3311,83 @@ export {
     getOrders
 };
 ```
+
+### Order API Slice & Start Order Screen
+create new file "**ordersApiSlice.js**" under frontend/slices <br />
+**ordersApiSlice.js** <br />
+```
+import {apiSlice} from './apiSlice';
+import { ORDERS_URL } from '../constants';
+
+export const ordersApiSlice = apiSlice.injectEndpoints ({
+    endpoints: (builder) => ({
+        createOrder: builder.mutation ({
+            query: (order) => ({
+                url: ORDERS_URL,
+                method: 'POST',
+                body: {...order}
+            })
+        })
+    })
+});
+
+export default {useCreateOrderMutation} = ordersApiSlice;
+```
+
+update in **cartSlice.js** <br />
+**cartSlice.js** <br />
+```
+....
+clearCartItems: (state, action) => {
+      state.cartItems = [];
+      return updateCart(state);
+    }
+.....
+export const {addToCart, removeFromCart, saveShippingAddress, savePaymentMethod, clearCartItems} = cartSlice.actions;
+```
+
+create new file **PlaceOrderScreen.js** under frontend/screens <br />
+**PlaceOrderScreen.js** <br />
+```
+import React from 'react';
+import {useState, useEffect} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
+import { UseSelector, useSelector } from 'react-redux';
+import { Button, Row, Col, ListGroup, Image, Card } from 'react-bootstrap';
+import CheckoutSteps from '../components/CheckoutSteps';
+
+const PlaceOrderScreen = () => {
+    const navigate = useNavigate();
+    const cart = useSelector((state) => state.cart);
+
+    useEffect(() => {
+        if(!cart.shippingAddress.address) {
+            navigate('/shipping');
+        } else if(!cart.paymentMethod) {
+            navigate('/payment');
+        }
+    }, [cart.paymentMethod, cart.shippingAddress.address, navigate]);
+
+    return (
+        <>
+            <CheckoutSteps step1 step2 step3 step4 />
+            <Row>
+                <Col md={8}>Column</Col>
+                <Col md={4}>Column</Col>
+            </Row>
+        </>
+    )
+}
+
+export default PlaceOrderScreen;
+```
+
+update in **index.js** <br />
+**index.js** <br />
+```
+....
+import PlaceOrderScreen from './screens/PlaceOrderScreen.js';
+....
+<Route path='/placeorder' element={<PlaceOrderScreen />} />
+....
+```
