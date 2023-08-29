@@ -3532,3 +3532,150 @@ const PlaceOrderScreen = () => {
 
 export default PlaceOrderScreen;
 ```
+
+## Checkout process - part 2
+### Order Page
+**orderRoutes.js** <br />
+remove **admin** from below line <br />
+```
+.....
+router.route('/:id').get(protect, getOrderById);
+.....
+```
+
+update in **orderApiSlice.js** <br/>
+**orderApiSlice.js**
+```
+....
+....
+getOrderDetails: builder.query ({
+            query: (orderId) => ({
+                url: `${ORDERS_URL}/${orderId}`
+            }),
+            keepUnusedDataFor: 5
+        })
+    })
+});
+
+export const {useCreateOrderMutation, useGetOrderDetailsQuery} = ordersApiSlice;
+```
+
+create new file **OrderScreen.js** under frontend/screens <br />
+**OrderScreen.js** <br />
+```
+import React from 'react'
+import {Link, useParams} from 'react-router-dom';
+import {Row, Col, ListGroup, Image, Form, Button, Card} from 'react-bootstrap';
+import Message from '../components/Message';
+import Loader from '../components/Loader';
+import { useGetOrderDetailsQuery } from '../slices/ordersApiSlice';
+
+const OrderScreen = () => {
+    const {id: orderId} = useParams();
+    const {data:order, refetch, isLoading, isError} = useGetOrderDetailsQuery(orderId);
+    
+    return isLoading ? (
+        <Loader />
+    ) : Error ? (
+        <Message variant='danger'>india</Message>
+    ) : (
+        <>
+            <h1>Order {order._id}</h1>
+            <Row>
+                <Col md={8}>
+                    <ListGroup variant='flush'>
+                        <ListGroup.Item>
+                            <h2>Shipping</h2>
+                            <p><strong>Name:</strong> {order.user.name}</p>
+                            <p><strong>Email:</strong> {order.user.email}</p>
+                            <p><strong>Address:</strong> 
+                                {order.shippingAddress.address}, {order.shippingAddress.city}{' '}
+                                {order.shippingAddress.postalCode}, {' '}
+                                {order.shippingAddress.country}
+                            </p>
+                            {order.isDelivered ? (
+                                <Message variant='success'>
+                                    Delivered on {order.deliveredAt}
+                                </Message>
+                            ) : (
+                                <Message variant='danger'>Not delivered</Message>
+                            )}
+                        </ListGroup.Item>
+                        <ListGroup.Item>
+                            <h2>Payment Method</h2>
+                            <p><strong>Method:</strong>
+                                {order.paymentMethod}
+                            </p>
+                            {order.isPaid ? (
+                                <Message variant='success'>Paid on {order.paidAt}</Message>
+                            ) : (
+                                <Message variant='danger'>Not Paid</Message>
+                            )}
+                        </ListGroup.Item>
+                        <ListGroup.Item>
+                            <h2>Order Items</h2>
+                            {order.orderItems.map((item, index) => {
+                                <ListGroup.Item key={index}>
+                                    <Row>
+                                        <Col md={1}>
+                                            <Image src={item.image} alt={item.name} fluid rounded />
+                                        </Col>
+                                        <Col>
+                                            <Link to={`/product/${item.product}`}>
+                                                {item.name}
+                                            </Link>
+                                        </Col>
+                                        <Col md={4}>
+                                            {item.qty} * {item.price} = ${item.qty * item.price}
+                                        </Col>
+                                    </Row>
+                                </ListGroup.Item>
+                            })}
+                        </ListGroup.Item>
+                    </ListGroup>
+                </Col>
+                <Col md={4}>
+                    <Card>
+                        <ListGroup variant='flush'>
+                            <ListGroup.Item>
+                                <h2>Order Summary</h2>
+                            </ListGroup.Item>
+                            <ListGroup.Item>
+                                <Row>
+                                    <Col>Items</Col>
+                                    <Col>${order.itemsPrice}</Col>
+                                </Row>
+                                <Row>
+                                    <Col>Shipping</Col>
+                                    <Col>${order.shippingPrice}</Col>
+                                </Row>
+                                <Row>
+                                    <Col>Tax</Col>
+                                    <Col>${order.taxPrice}</Col>
+                                </Row>
+                                <Row>
+                                    <Col>Total</Col>
+                                    <Col>{order.totalPrice}</Col>
+                                </Row>
+                            </ListGroup.Item>
+                        </ListGroup>
+                    </Card>
+                </Col>
+            </Row>
+        </>
+    )
+}
+
+export default OrderScreen;
+```
+
+update in **index.js** <br />
+**index.js**
+```
+....
+....
+import OrderScreen from './screens/OrderScreen.js';
+.....
+<Route path='/order/:id' element={<OrderScreen />} />
+.....
+```
