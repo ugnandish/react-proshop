@@ -4466,3 +4466,71 @@ const OrderListScreen = () => {
 
 export default OrderListScreen
 ```
+
+### Delivered Order Status
+update in **OrderController.js** <br />
+```
+//@desc update order to delivered
+//@route PUT /api/orders/:id/deliver
+//@access Private/Admin
+const updateOrderToDelivered = asyncHandler(async(req, res) => {
+    const order = await Order.findById(req.params.id);
+    if(order) {
+        order.isDelivered = true;
+        order.deliveredAt = Date.now();
+
+        const updatedOrder = await order.save();
+        res.status(200).json(updatedOrder);
+    } else {
+        res.status(404);
+        throw new Error('Order not found');
+    }
+});
+```
+
+update in **ordersApiSlice.js** <br/>
+```
+}),
+        deliverOrder: builder.mutation({
+            query: (orderId) => ({
+                url: `${ORDERS_URL}/${orderId}/deliver`,
+                method: 'PUT'
+            }),
+        })
+....
+
+useDeliverOrderMutation,
+} = ordersApiSlice;
+```
+
+update in **OrderScreen.js** <br />
+```
+....
+import { useGetOrderDetailsQuery, usePayOrderMutation, useGetPayPalClientIdQuery, useDeliverOrderMutation } from '../slices/ordersApiSlice';
+....
+const [payOrder, {isLoading:loadingPay}] = usePayOrderMutation();
+const [deliverOrder, {isLoading:loadingDeliver}] = useDeliverOrderMutation();
+const [{isPending}, paypalDispatch] = usePayPalScriptReducer();
+.....
+    const deliverOrderHandler = async() => {
+        try {
+            await deliverOrder(orderId);
+            refetch();
+            toast.success('Order delivered');
+        } catch (err) {
+            toast.error(err?.data?.message || err.message);
+        }
+    }
+.....
+</ListGroup.Item>
+)}
+{loadingDeliver && <Loader />}
+{userInfo.isAdmin && order.isPaid && !order.isDelivered && (
+<ListGroup.Item>
+  <Button type='button' className='btn btn-block' onClick={deliverOrderHandler}> Mark As Delivered</Button>
+</ListGroup.Item>
+)}
+</ListGroup>
+</Card>
+....
+```
