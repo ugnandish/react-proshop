@@ -4679,7 +4679,7 @@ update in **productController.js** <br />
 //@access Private/Admin
 const updateProduct = asyncHandler(async(req, res) => {
     const {name, price, description, image, brand, category, countInStock} = req.body;
-    const product = await Product.findById(req.param.id);
+    const product = await Product.findById(req.params.id);
     if(product) {
         product.name = name;
         product.price = price;
