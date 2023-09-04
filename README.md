@@ -4295,3 +4295,73 @@ const ProfileScreen = () => {
 
 export default ProfileScreen
 ```
+
+## Admin Functionality
+### Admin Route Functionality
+create new file **AdminRoute.js** under frontend/components <br />
+**AdminRoute.js** <br/>
+```
+import React from 'react'
+import { Outlet, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+
+const AdminRoute = () => {
+    const {userInfo} = useSelector((state) => state.auth);
+    return userInfo && userInfo.isAdmin ? (
+        <Outlet /> 
+    ) : ( 
+        <Navigate to ='/login' replace /> 
+    );
+};
+
+export default AdminRoute;
+```
+
+create new folder **admin** under frontend/screens <br />
+create new file **OrderListScreen.js** under frontend/screens/admin <br />
+**OrderListScreen.js** <br />
+```
+import React from 'react'
+const OrderListScreen = () => {
+  return (
+    <div>OrderListScreen</div>
+  )
+}
+export default OrderListScreen
+```
+
+update in **index.js** <br/>
+```
+....
+import PrivateRoute from './components/PrivateRoute.js';
+import AdminRoute from './components/AdminRoute.js';
+....
+import OrderListScreen from './screens/admin/OrderListScreen.js';
+....
+....
+<Route path='' element={<AdminRoute />}>
+        <Route path='/admin/orderlist' element={<OrderListScreen />} />
+      </Route>
+```
+
+update in **Header.js** <br />
+**Header.js** <br />
+```
+ </LinkContainer>
+              )}
+              {userInfo && userInfo.isAdmin && (
+                <NavDropdown title='Admin' id='adminmenu'>
+                  <LinkContainer to='/admin/productlist'>
+                    <NavDropdown.Item>Products</NavDropdown.Item>
+                  </LinkContainer>
+                  <LinkContainer to='/admin/userlist'>
+                    <NavDropdown.Item>Users</NavDropdown.Item>
+                  </LinkContainer>
+                  <LinkContainer to='/admin/orderlist'>
+                    <NavDropdown.Item>Orders</NavDropdown.Item>
+                  </LinkContainer>
+                </NavDropdown>
+              )}
+            </Nav>
+....
+```
