@@ -4615,11 +4615,57 @@ export default ProductListScreen
 ```
 
 update in **index.js**
-import ProductListScreen from './screens/admin/ProductListScreen.js';
 ```
+....
+import ProductListScreen from './screens/admin/ProductListScreen.js';
+....
 <Route path='' element={<AdminRoute />}>
         <Route path='/admin/orderlist' element={<OrderListScreen />} />
         <Route path='/admin/productlist' element={<ProductListScreen />} />
        </Route>
     </Route>
+```
+
+### Creating Products
+update in **productController.js** <br />
+```
+......
+......
+        throw new Error('Resource not found');
+    }
+});
+
+//@desc Create a product
+//@route POST /api/products
+//@access Private/Admin
+const createProduct = asyncHandler(async(req, res) => {
+    const product = new Product ({
+        name: 'Sample name',
+        price: 0,
+        user: req.user._id,
+        image: '/images/sample.jpg',
+        brand: 'Sample brand',
+        category: 'Sample category',
+        countInStock: 0,
+        numReviews: 0,
+        description: 'Sample description',
+    })
+    const createProduct = await product.save();
+    res.status(200).json(createProduct);
+});
+
+export {getProducts, getProductById, createProduct};
+```
+
+update in **productRoutes.js** <br />
+```
+import express, { Router } from "express";
+const router = express.Router();
+import { getProducts, getProductById, createProduct } from "../controllers/productController.js";
+import {protect, admin} from '../middleware/authMiddleware.js';
+
+router.route('/').get(getProducts).post(protect, admin, createProduct);
+router.route('/:id').get(getProductById);
+
+export default router;
 ```
