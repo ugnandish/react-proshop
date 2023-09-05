@@ -4895,3 +4895,108 @@ import ProductEditScreen from './screens/admin/ProductEditScreen.js';
     </Route>
 ....
 ```
+
+### Update Product Bug fix
+update in **productApiSlice.js** <br />
+```
+.....
+getProducts: builder.query({
+            query:() => ({
+                url: PRODUCTS_URL,
+            }),
+            providesTags: ['Products'],
+            keepUnusedDataFor: 5,
+}),
+.....
+.....
+updateProduct: builder.mutation ({
+            query: (data) => ({
+                url: `${PRODUCTS_URL}/${data.productId}`,
+                method: 'PUT',
+                body: data,
+            }),
+            invalidatesTags: ['Products'],
+        })
+....
+```
+
+### Multer & Image Upload Endpoint
+create new file **uploadRoutes.js** under backend/routes <br />
+**uploadRoutes.js** <br/>
+```
+import path from 'path';
+import express from 'express';
+import multer from 'multer';
+const router = express.Router();
+
+const storage = multer.diskStorage({
+    destination(req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename(req, file, cb) {
+        cb(null, `${file.fieldname}-${Date.now()}$path.extname(file.originalname)`);
+    }
+});
+
+function checkFileTypes(file, cb) {
+    const filetypes = /jpg|jpeg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.minetype);
+    if(extname && mimetype) {
+        return cb(null, true);
+    } else {
+        cb('Image only!');
+    }
+}
+    
+const upload = multer ({
+    storage,
+});
+router.post('/', upload.single('image'),(req, res) => {
+    res.send({
+        message: 'Image Upload',
+        image: `/${req.file.path}`
+    });
+})
+
+export default router;
+```
+
+update in **server.js** <br />
+```
+....
+import uploadRoutes from './routes/uploadRoutes.js';
+.....
+.....
+app.use('/api/orders', orderRoutes);
+app.use('/api/upload', uploadRoutes);
+
+const __dirname = path.resolve(); //set __dirname to current directory
+app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
+
+app.use(notFound);
+....
+```
+
+### Upload Product Image - Frontend
+update in **constants.js** <br />
+```
+....
+export const UPLOAD_URL = '/api/upload';
+```
+
+update in **productsApiSlice.js** <br />
+```
+import { PRODUCTS_URL, UPLOAD_URL } from "../constants";
+....
+uploadProductImage: builder.mutation ({
+            query: (data) => ({
+                url: `${UPLOAD_URL}`,
+                method: 'POST',
+                body: data,
+            })
+        })
+.....
+useUploadProductImageMutation
+} = productsApiSlice;
+```
