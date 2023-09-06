@@ -5168,3 +5168,74 @@ const ProductEditScreen = () => {
 
 export default ProductEditScreen
 ```
+
+### Delete Products
+update in **productController.js** <br />
+```
+.....
+
+//@desc Delete a product
+//@route Delete /api/products/:id
+//@access Private/Admin
+const deleteProduct = asyncHandler(async (req, res) => {
+    const product = await Product.findById(req.params.id);
+    if(product) {
+        await Product.deleteOne({_id: product._id});
+        res.status(200).json({message: 'Product deleted'});
+    } else {
+        res.status(404);
+        throw new Error('Resouce not found');
+    }
+});
+
+export {getProducts, getProductById, createProduct, updateProduct, deleteProduct};
+```
+
+update in **productRoutes.js** <br />
+```
+.....
+import { getProducts, getProductById, createProduct, updateProduct, deleteProduct } from "../controllers/productController.js";
+.....
+router.route('/:id').get(getProductById).put(protect, admin, updateProduct).delete(protect, admin, deleteProduct);
+....
+```
+
+update in productApliSlice.js <br />
+```
+deleteProduct: builder.mutation({
+            query: (productId) => ({
+                url: `${PRODUCTS_URL}/${productId}`,
+                method: 'DELETE',
+            })
+        })
+....
+useDeleteProductMutation,
+} = productsApiSlice;
+```
+
+update in **ProductListScreen.js** <br />
+```
+....
+import { useGetProductsQuery, useCreateProductMutation, useDeleteProductMutation } from '../../slices/productsApiSlice';
+....
+....
+const [deleteProduct, {isLoading: loadingDelete}] = useDeleteProductMutation();
+.....
+.....
+const deleteHandler = async (id) => {
+        if(window.confirm('Are you sure')) {
+            try {
+                await deleteProduct(id);
+                toast.success('Product deleted');
+                refetch();
+            } catch(err) {
+                toast.error(err?.data?.message || err.error);
+            }
+        }
+    }
+.....
+.....
+{loadingCreate && <Loader />}
+{loadingDelete && <Loader />}
+....
+```
