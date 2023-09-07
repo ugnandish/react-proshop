@@ -5754,3 +5754,31 @@ router.route('/:id/reviews').post(protect, createProductReview);
 ....
 ```
 
+### Create Reviews - Frontend
+update in **productsApiSlice.js** <br/>
+```
+.....
+createReview: builder.mutation({
+            query: (data) => ({
+                url: `${PRODUCTS_URL}/${data.productId}/reviews`,
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: ['Product'],
+        })
+    }),
+})
+....
+....
+    useCreateReviewMutation
+} = productsApiSlice;
+```
+
+update in **ProductScreen.js** <br/>
+```
+....
+import { useDispatch, useSelector } from 'react-redux';
+import {toast} from 'react-toastify';
+....
+import { useGetProductDetailsQuery, useCreateReviewMutation } from '../slices/productsApiSlice';
+....
