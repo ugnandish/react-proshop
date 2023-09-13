@@ -5968,3 +5968,68 @@ const ProductScreen = () => {
 
 export default ProductScreen
 ```
+
+### Paginate Products
+update in **ProductController.js** <br/>
+```
+//@desc Fetch all products
+//@route GET /api/products
+//@access Public
+const getProducts = asyncHandler(async (req, res) => {
+    const pageSize = 2;
+    const page = Number(req.query.pageNumber) || 1;
+    const count = await Product.countDocuments();
+
+    const products = await Product.find({})
+        .limit(pageSize)
+        .skip(pageSize * (page - 1));
+    res.json({products, page, pages: Math.ceil(count/pageSize)});
+});
+......
+......
+```
+
+update in **HomeScreen.js** <br/>
+```
+.....
+const {data, isLoading, error} = useGetProductsQuery();
+.....
+.....
+{data.products.map((product) => (
+.....
+```
+
+update in **productsApiSlice.js** <br />
+```
+.....
+getProducts: builder.query({
+            query:({pageNumber}) => ({
+                url: PRODUCTS_URL,
+                params: {
+                    pageNumber,
+                },
+            }),
+            providesTags: ['Products'],
+            keepUnusedDataFor: 5,
+        }),
+.....
+.....
+```
+
+update in **HomeScreen.js** <br />
+```
+import { useParams } from 'react-router-dom';
+import { useGetProductsQuery } from '../slices/productsApiSlice';
+
+const HomeScreen = () => {
+  const {pageNumber} = useParams();
+
+  const {data, isLoading, error} = useGetProductsQuery({pageNumber});
+....
+....
+```
+
+update in **index.js** <br />
+```
+<Route path='/page/:pageNumber' element={<HomeScreen />} />
+```
