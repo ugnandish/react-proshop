@@ -5976,7 +5976,7 @@ update in **ProductController.js** <br/>
 //@route GET /api/products
 //@access Public
 const getProducts = asyncHandler(async (req, res) => {
-    const pageSize = 2;
+    const pageSize = 4;
     const page = Number(req.query.pageNumber) || 1;
     const count = await Product.countDocuments();
 
@@ -6033,3 +6033,70 @@ update in **index.js** <br />
 ```
 <Route path='/page/:pageNumber' element={<HomeScreen />} />
 ```
+
+### Paginate Component
+create new file **Paginate.js** under frontend/components <br />
+```
+import { Pagination } from "react-bootstrap";
+import { LinkContainer } from "react-router-bootstrap";
+
+const Paginate = ({pages, page, isAdmin = false}) => {
+    return (
+        pages > 1 && (
+            <Pagination>
+                {[...Array(pages).keys()].map((x) => (
+                    <LinkContainer 
+                        key={x + 1}
+                        to = {
+                            !isAdmin
+                            ? `/page/${x + 1}`
+                            : `/admin/productlist/${x + 1}`
+                        }
+                    >
+                    <Pagination.Item active={x + 1 === page}>{x + 1}</Pagination.Item>
+                    </LinkContainer>
+                ))}
+            </Pagination>
+        )
+    )
+}
+
+export default Paginate;
+```
+
+update in HomeScreen.js <br />
+```
+.....
+import Paginate from '../components/Paginate';
+......
+......
+<Paginate pages={data.pages} page={data.page} />
+......
+```
+
+update in **ProductListScreen.js** <br />
+```
+.....
+import { useParams } from 'react-router-dom';
+.....
+const {pageNumber} = useParams();
+const {data, isLoading, error, refetch} = useGetProductsQuery({pageNumber});
+.....
+<tbody>
+{data.products.map((product) => (
+.....
+```
+
+update in **index.js** <br />
+```
+<Route path='/admin/productlist/:pageNumber' element={<ProductListScreen />} />
+```
+
+update in **ProductListScreen.js** <br />
+```
+.....
+import Paginate from '../../components/Paginate';
+.....
+.....
+<Paginate pages={data.pages} page={data.page} isAdmin={true} />
+......
