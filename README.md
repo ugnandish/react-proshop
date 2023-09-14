@@ -6186,3 +6186,75 @@ const Paginate = ({pages, page, isAdmin = false, keyword = ''}) => {
     )
 }
 ```
+
+### Search Box Component
+create new file **SeachBox.js** under frontend/components <br />
+**SeachBox.js** <br />
+```
+import React, { useState } from 'react';
+import {Form, Button} from 'react-bootstrap';
+import { useParams, useNavigate } from 'react-router-dom';
+
+const SearchBox = () => {
+    const navigate = useNavigate();
+    const {keyword: urlKeyword} = useParams();
+    const [keyword, setKeyword] = useState(urlKeyword || '');
+
+    const submitHandler = (e) => {
+        e.preventDefault();
+        if(keyword.trim()) {
+            setKeyword('');
+            navigate(`/search/${keyword}`);
+        } else {
+            navigate('/');
+        }
+    }
+
+    return (
+        <Form onSubmit={submitHandler} className='d-flex'>
+            <Form.Control 
+                type = 'text'
+                name= 'q'
+                onChange={(e) => setKeyword(e.target.value)}
+                value={keyword}
+                placeholder='Search Products...'
+                className='mr-sm-2 ml-sm-5'>
+            </Form.Control>
+            <Button type='submit' variant='outline-light' className='p-2 mx-2'>
+                Search
+            </Button>
+        </Form>
+    )
+}
+
+export default SearchBox
+```
+
+update in **Header.js** <br/>
+```
+....
+import SearchBox from './SearchBox';
+....
+....
+<Nav className='ms-auto'>
+<SearchBox />
+<LinkContainer to='/cart'>
+<Nav.Link >
+.....
+.....
+```
+
+update in **HomeScreen.js** <br />
+```
+.....
+import { Link } from 'react-router-dom';
+.....
+.....
+{keyword && (
+  <Link to='/' className='btn btn-light mb-4'>
+    Go Back
+  </Link>
+)}
+....
+....
+```
