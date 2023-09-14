@@ -6100,3 +6100,89 @@ import Paginate from '../../components/Paginate';
 .....
 <Paginate pages={data.pages} page={data.page} isAdmin={true} />
 ......
+```
+
+### Search Products
+update in **ProductController.js** <br />
+```
+//@desc Fetch all products
+//@route GET /api/products
+//@access Public
+const getProducts = asyncHandler(async (req, res) => {
+    const pageSize = 8;
+    const page = Number(req.query.pageNumber) || 1;
+
+    const keyword = req.query.keyword ? {name: {$regex: req.query.keyword, $options: 'i'}} : {};
+
+    const count = await Product.countDocuments({...keyword});
+
+    const products = await Product.find({...keyword})
+        .limit(pageSize)
+        .skip(pageSize * (page - 1));
+    res.json({products, page, pages: Math.ceil(count/pageSize)});
+});
+```
+
+update in **productApiSlice.js** <br />
+```
+.....
+getProducts: builder.query({
+            query:({keyword, pageNumber}) => ({
+                url: PRODUCTS_URL,
+                params: {
+                    keyword,
+                    pageNumber,
+                },
+            }),
+.....
+```
+
+update in **HomeScreen.js** <br />
+```
+.....
+const HomeScreen = () => {
+  const {pageNumber, keyword} = useParams();
+
+  const {data, isLoading, error} = useGetProductsQuery({keyword, pageNumber});
+
+....
+<Paginate pages={data.pages} page={data.page} keyword = {keyword ? keyword : ''} />
+.....
+```
+
+update in **index.js** <br />
+```
+.....
+<Route index={true} path='/' element={<HomeScreen />} />
+<Route path='/search/:keyword' element={<HomeScreen />} />
+<Route path='/page/:pageNumber' element={<HomeScreen />} />
+<Route path='/search/:keyword/page/:pageNumber' element={<HomeScreen />} />
+<Route path='/product/:id' element={<ProductScreen />} />
+....
+```
+
+update in **Paginate.js** <br />
+```
+const Paginate = ({pages, page, isAdmin = false, keyword = ''}) => {
+    return (
+        pages > 1 && (
+            <Pagination>
+                {[...Array(pages).keys()].map((x) => (
+                    <LinkContainer 
+                        key={x + 1}
+                        to = {
+                            !isAdmin
+                            ? keyword
+                            ? `/search/${keyword}/page/${x + 1}`
+                            : `/page/${x + 1}`
+                            : `/admin/productlist/${x + 1}`
+                        }
+                    >
+                    <Pagination.Item active={x + 1 === page}>{x + 1}</Pagination.Item>
+                    </LinkContainer>
+                ))}
+            </Pagination>
+        )
+    )
+}
+```
