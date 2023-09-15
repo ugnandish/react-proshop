@@ -6258,3 +6258,100 @@ import { Link } from 'react-router-dom';
 ....
 ....
 ```
+
+### Product Carousel
+update in **productController.js** <br />
+```
+//desc Get top rated products
+//@route GET /api/products/top
+//@access Public
+const getTopProducts = asyncHandler(async(req, res) => {
+    const products = await Product.find({}).sort({rating: -1}).limit(3);
+    res.status(200).json(products);
+});
+
+export {
+  ....
+  getTopProducts
+};
+```
+
+update in **ProductRoutes.js** <br />
+```
+.....
+import { 
+    ......
+    getTopProducts } from "../controllers/productController.js";
+....
+router.get('/top', getTopProducts);
+....
+```
+
+update in **productApiSlice.js** <br />
+```
+......
+getTopProducts: builder.query({
+  query: () => ({
+    url: `${PRODUCTS_URL}/top`,
+  }),
+  keepUnusedDataFor: 5,
+})
+....
+export const {
+....
+useGetTopProductsQuery
+} = productsApiSlice;
+```
+
+create in new file **ProductCarousel.js** under frontend/src/components <br />
+**ProductCarousel.js** <br />
+```
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Carousel, Image } from 'react-bootstrap';
+import Loader from './Loader';
+import Message from './Message';
+import { useGetTopProductsQuery } from '../slices/productsApiSlice';
+
+const ProductCarousel = () => {
+    const {data: products, isLoading, error} = useGetTopProductsQuery();
+    
+    return isLoading ? null : error ? (
+        <Message variant='danger'>{error?.data?.message || error.error}</Message>
+        ) : (
+        <Carousel pause='hover' className='bg-primary mb-4'>
+            {products.map((product) => (
+                <Carousel.Item key={product._id}>
+                    <Link to={`/product/${product._id}`}>
+                        <Image src={product.image} alt={product.name} fluid />
+                        <Carousel.Caption className='carousel-caption'>
+                            <h2 className='text-white text-right'>
+                                {product.name} (${product.price})
+                            </h2>
+                        </Carousel.Caption>
+                    </Link>
+                </Carousel.Item>
+            ))}
+        </Carousel>
+        );
+    };
+
+export default ProductCarousel
+```
+
+update in **HomeScreen.js** <br />
+```
+.....
+import ProductCarousel from '../components/ProductCarousel';
+.....
+.....
+{!keyword ? (
+        <ProductCarousel />
+  ) : (
+  <Link to='/' className='btn btn-light mb-4'>
+      Go Back
+  </Link>
+)}
+.....
+.....
+```
