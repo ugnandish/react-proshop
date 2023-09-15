@@ -6355,3 +6355,72 @@ import ProductCarousel from '../components/ProductCarousel';
 .....
 .....
 ```
+
+### Page Titles
+install **npm i react-helmet-async** under frontend <br/>
+update in **index.js** <br/>
+```
+.....
+import {HelmetProvider} from 'react-helmet-async';
+.....
+.....
+root.render(
+  <React.StrictMode>
+    <HelmetProvider>
+      <Provider store={store} >
+        <PayPalScriptProvider deferLoading={true}>
+          <RouterProvider router={router} />
+        </PayPalScriptProvider>
+      </Provider>
+    </HelmetProvider>
+  </React.StrictMode>
+);
+....
+```
+
+create new file **Meta.js** under frontend/components <br />
+```
+import React from 'react'
+import { Helmet } from 'react-helmet-async'
+
+const Meta = ({title, description, keywords}) => {
+  return (
+    <Helmet>
+        <title>{title}</title>
+        <meta name='description' content={description} />
+        <meta name='keywords' content={keywords} />
+    </Helmet>
+  )
+}
+
+Meta.defaultProps = {
+    title: 'Welcome to Proshop',
+    description: 'We sell the best products for cheep',
+    keywords: 'electronics, buy electronics, cheep electronics'
+}
+
+export default Meta
+```
+
+update in **ProductScreen.js** <br />
+```
+....
+import Meta from '../components/Meta';
+....
+return (
+    <>
+      <Link className='btn btn-light my-3' to='/'>
+        Go Back
+      </Link>
+      {isLoading ? (
+        <Loader />
+      ) : error? (
+        <Message variant='danger'>{error?.data?.message || error.error}</Message>
+      ) : (
+        <>
+          <Meta title={product.name}/>
+          <Row>
+            <Col md={5}>
+.....
+.....
+```
