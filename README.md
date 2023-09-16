@@ -6424,3 +6424,170 @@ return (
 .....
 .....
 ```
+
+### latest updates
+update in **uploadRoutes.js** <br />
+replace below code
+old code <br />
+```
+function checkFileTypes(file, cb) {
+    const filetypes = /jpg|jpeg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.minetype);
+    if(extname && mimetype) {
+        return cb(null, true);
+    } else {
+        cb('Image only!');
+    }
+}
+const upload = multer ({
+    storage,
+});
+router.post('/', upload.single('image'),(req, res) => {
+    res.send({
+        message: 'Image Upload',
+        image: `/${req.file.path}`
+    });
+})
+```
+
+new code <br/>
+```
+function fileFilter(req, file, cb) {
+    const filetypes = /jpe?g|png|webp/;
+    const mimetypes = /image\/jpe?g|image\/png|image\/webp/;
+
+    const extname = filetypes.test(path.extname(file.orginalname).toLowerCase());
+    const mimetype = mimetypes.test(file.mimetype);
+
+    if(extname && mimetype) {
+        cb(null, true);
+    } else {
+        cb(new Error('Images only!'), false);
+    }
+}
+
+const upload = multer({storage, fileFilter});
+const uploadSingleImage = upload.single('image');
+
+router.post('/', (req, res) => {
+    uploadSingleImage(req, res, function(err) {
+        if(err) {
+            res.status(400).send({message: err.message});
+        }
+        res.status(200).send({
+            message: 'Image uploaded successfully',
+            image: `/${req.file.path}`,
+        });
+    });
+});
+```
+
+create new file **checkObjectId.js** under backend/middleware <br />
+```
+import { isValidObjectId } from "mongoose";
+
+function checkObjectId(req, res, next) {
+    if(!isValidObjectId(req.params.id)) {
+        res.status(404);
+        throw new Error(`Invalid ObjectId of: ${req.params.id}`);
+    }
+    next();
+}
+
+export default checkObjectId;
+```
+
+remove below lines from errorMiddleware.js <br/>
+```
+//check for mongoose bad objectId
+if(err.name === 'CastError' && err.kind === 'ObjectId') {
+  message = `Resource not found`;
+  statusCode = 404;
+}
+```
+
+update in **productRoutes.js** <br />
+```
+import express, { Router } from "express";
+const router = express.Router();
+import { 
+    getProducts, 
+    getProductById, 
+    createProduct, 
+    updateProduct, 
+    deleteProduct, 
+    createProductReview,
+    getTopProducts } from "../controllers/productController.js";
+import {protect, admin} from '../middleware/authMiddleware.js';
+import checkObjectId from "../middleware/checkObjectId.js";
+
+router.route('/').get(getProducts).post(protect, admin, createProduct);
+router.route('/:id/reviews').post(protect, checkObjectId, createProductReview);
+router.get('/top', getTopProducts);
+router
+    .route('/:id')
+    .get(checkObjectId, getProductById)
+    .put(protect, admin, checkObjectId, updateProduct)
+    .delete(protect, admin, checkObjectId, deleteProduct);
+
+export default router;
+```
+
+update in frontend/src/screens/OrderScreen.js <br/>
+```
+<Message variant='danger'>{error?.data?.message || error.error}</Message>
+```
+
+update in frontend/src/screens/PlaceOrderScreen.js <br/>
+```
+<Message variant='danger'>{error.data.message}</Message>
+```
+
+update in frontend/src/screens/ProductEditScreen.js <br/>
+```
+<Message variant='danger'>{error.data.message}</Message>
+```
+
+update in frontend/src/screens/ProductListScreen.js <br/>
+```
+<Message variant='danger'>{error.data.message}</Message>
+```
+
+update in **authSlice.js** <br/>
+replace below code <br/>
+```
+localStorage.removeItem('userInfo');
+```
+with <br/>
+```
+localStorage.clear();
+```
+
+update in **cartSlice.js** <br/>
+```
+......
+resetCart: (state) => (state = initialState)
+export const {
+  .....
+  resetCart } = cartSlice.actions;
+```
+
+update in **Header.js** <br />
+```
+....
+import { resetCart } from '../slices/cartSlice';
+
+....
+  const logoutHandler = async () => {
+    try {
+      await logoutApiCall().unwrap();
+      dispatch(logout());
+      dispatch(resetCart());
+      navigate('/login');
+    } catch(err) {
+      console.log(err);
+    }
+  }
+....
+```
