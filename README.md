@@ -6591,3 +6591,229 @@ import { resetCart } from '../slices/cartSlice';
   }
 ....
 ```
+
+### PayPal & Price Calculate Fixes
+update the below code in .env file <br/>
+```
+PAYPAL_APP_SECRET=(copy from paypal account)
+PAYPAL_API_URL=https://api-m.sandbox.paypal.com
+```
+
+create new file **paypal.js** under backend/utils folder <br/>
+**paypal.js** 
+```
+import dotenv from 'dotenv'
+dotenv.config();
+
+/** 
+ * Fetches an access token from the paypal API
+ *  @see {@link https://developer.paypal.com/reference/get-an-access-token/#link-getanaccesstoken}
+ * 
+ * @returns {Promise<string>} The access token if the request is successful.
+ * @throws {Error} If the request is not successful.
+ * 
+ */
+
+async function getPayPalAccessToken() {
+    //Authorization header requires base64 encoding
+    const auth = Buffer.from(PAYPAL_CLIENT_ID + ':' + PAYPAL_APP_SECRET).toString('base64');
+
+    const url = `${PAYPAL_API_URL}/v1/oauth2/token`;
+
+    const headers = {
+        Accept: 'application/json',
+        'Accept-Language': 'en_US',
+        Authorization: `Basic ${auth}`,
+    };
+
+    const body = 'grant_type=client_credentials';
+    const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body,
+    });
+
+    if(!response.ok) throw new Error('Failed to get access token');
+
+    const paypalData = await response.json();
+
+    return paypalData.access_token;
+}
+
+/** 
+ * Checks if a paypal transaction is new by comparing the transaction ID with existing orders in the database.
+ * 
+ * @param {Mongoose.Model} orderModel - The Mongoose model for the orders in the database.
+ * @param {string} paypalTransactionId - The payPal transaction ID to be checked.
+ * @returns {Promise<boolean>} Returns true if it is a new transaction (i.e., the transaction ID does not
+ * exist in the database), false otherwise.
+ * @throws {Error} If there's an error in querying the database.
+ * 
+ */
+
+export async function checkIfNewTransaction(orderModel, paypalTransactionId) {
+    try {
+        //find all documents where Order.paymentResult.id is the same as the id passed paypaltransactionId
+        const orders = await orderModel.find({
+            'paymentResult.id': paypalTransactionId,
+        });
+
+        //If there are no such orders, then it's a new transaction.
+        return orders.length === 0;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+/** 
+ * Verifies a PayPal payment by making a request to the PayPal API
+ * @see {@link https://developer.paypal.com/docs/api/orders/v2/#orders_get}
+ * 
+ * @param {string} paypalTransactionId -  The PayPal transaction ID to be verified.
+ * @returns {Promise<Object>} An object with properties 'verified indicating if the payment is completed and 'value'
+ * indicating the payment amount.
+ * @throws {Error} If the request is not successful.
+ * 
+ */
+
+export async function verifyPayPalPayment(paypalTransactionId) {
+    const accessToken = await getPayPalAccessToken();
+    const paypalResponse = await fetch(
+        `${PAYPAL_API_URL}/v2/checkout/orders/${paypalTransactionId}`,
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${accessToken}`,
+            },        
+        }
+    );
+    if(!paypalResponse.ok) throw new Error('Failed to verify payment');
+
+    const paypalData = await paypalResponse.json();
+    return {
+        verified: paypalData.status === 'COMPLETED',
+        value: paypalData.purchase_units[0].amount.value,
+    };
+}
+```
+
+create new file **calcPrices.js** under backend/utils/calcPrices.js <br/>
+**calcPrices.js**
+```
+function addDecimals(num) {
+    return (Math.round(num * 100) /100).toFixed(2);
+}
+
+export function calcPrices(orderItems) {
+    //calculate the items price
+    const itemsPrice = addDecimals (
+        orderItems.reduce((acc, item) => acc + item.price * item.qty, 0)
+    );
+    //calculate the shipping price
+    const shippingPrice = addDecimals(itemsPrice > 100 ? 0 : 10);
+    //calculate the tax price
+    const taxPrice = addDecimals(Number((0.15 * itemsPrice).toFixed(2)));
+    //calculate the total price
+    const totalPrice = (
+        Number(itemsPrice) +
+        Number(shippingPrice) +
+        Number(taxPrice)
+    ).toFixed(2);
+    return {itemsPrice, shippingPrice, taxPrice, totalPrice};
+}
+```
+
+update in **orderController.js** <br/>
+```
+....
+import Product from '../models/productModel.js';
+import { calcPrices } from '../utils/calcPrices.js';
+import { verifyPayPalPayment, checkIfNewTransaction } from '../utils/paypal.js';
+....
+const addOrderItems = asyncHandler(async (req, res) => {
+  const { orderItems, shippingAddress, paymentMethod } = req.body;
+
+  if (orderItems && orderItems.length === 0) {
+    res.status(400);
+    throw new Error('No order items');
+  } else {
+    // get the ordered items from our database
+    const itemsFromDB = await Product.find({
+      _id: { $in: orderItems.map((x) => x._id) },
+    });
+
+    // map over the order items and use the price from our items from database
+    const dbOrderItems = orderItems.map((itemFromClient) => {
+      const matchingItemFromDB = itemsFromDB.find(
+        (itemFromDB) => itemFromDB._id.toString() === itemFromClient._id
+      );
+      return {
+        ...itemFromClient,
+        product: itemFromClient._id,
+        price: matchingItemFromDB.price,
+        _id: undefined,
+      };
+    });
+
+    // calculate prices
+    const { itemsPrice, taxPrice, shippingPrice, totalPrice } =
+      calcPrices(dbOrderItems);
+
+    const order = new Order({
+      orderItems: dbOrderItems,
+      user: req.user._id,
+      shippingAddress,
+      paymentMethod,
+      itemsPrice,
+      taxPrice,
+      shippingPrice,
+      totalPrice,
+    });
+
+    const createdOrder = await order.save();
+
+    res.status(201).json(createdOrder);
+  }
+});
+.....
+.....
+const updateOrderToPaid = asyncHandler(async (req, res) => {
+  const { verified, value } = await verifyPayPalPayment(req.body.id);
+  if (!verified) throw new Error('Payment not verified');
+
+  // check if this transaction has been used before
+  const isNewTransaction = await checkIfNewTransaction(Order, req.body.id);
+  if (!isNewTransaction) throw new Error('Transaction has been used before');
+
+  const order = await Order.findById(req.params.id);
+
+  if (order) {
+    // check the correct amount was paid
+    const paidCorrectAmount = order.totalPrice.toString() === value;
+    if (!paidCorrectAmount) throw new Error('Incorrect amount paid');
+
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    order.paymentResult = {
+      id: req.body.id,
+      status: req.body.status,
+      update_time: req.body.update_time,
+      email_address: req.body.payer.email_address,
+    };
+
+    const updatedOrder = await order.save();
+
+    res.json(updatedOrder);
+  } else {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+});
+....
+....
+```
+
+update in **orderScreen.js**  frontend/screens/orderScreen.js <br/>
+```
+await payOrder({orderId, details}).unwrap();
+```
